@@ -160,6 +160,7 @@ def wish():
         data = emp_data.loc[emp_data['연번'] == i]
         res_df = pd.concat([res_df, data])
 
+    print(res_df)
     res = res_df.to_json(orient='records', force_ascii=False)
 
     return res
@@ -659,16 +660,18 @@ def reco_based_resume():
     top_columns = reason3.apply(lambda row: row[row > 1.3].nlargest(n).index.tolist(), axis=1)
     rec3['추천이유'] = top_columns
 
-    reason1_1 = rec1.iloc[:, -4:-2]
+    reason1_1 = rec1.iloc[:, -8:-2]
     # 행별 상위 n개의 비중을 가지는 컬럼과 해당 값 출력
     top_columns = reason1.apply(lambda row: row[row <= -1].nlargest(n).index.tolist(), axis=1)
+    #top_columns
     rec1['감점이유'] = top_columns
 
-    reason2 = rec2.iloc[:, -4:-2]
+    reason2 = rec2.iloc[:, -8:-2]
     top_columns = reason2.apply(lambda row: row[row <= -1].nlargest(n).index.tolist(), axis=1)
     rec2['감점이유'] = top_columns
 
-    reason3 = rec3.iloc[:, -4:-2]
+    reason3 = rec3.iloc[:, -8:-2]
+    print(reason3)
     top_columns = reason3.apply(lambda row: row[row <= -1].nlargest(n).index.tolist(), axis=1)
     rec3['감점이유'] = top_columns
 
@@ -678,6 +681,8 @@ def reco_based_resume():
     hap['총합'] = pd.concat([rec1['총합'], rec2['총합'], rec3['총합']])
     reason['추천이유'] = pd.concat([rec1['추천이유'], rec2['추천이유'], rec3['추천이유']])
     reason['감점이유'] = pd.concat([rec1['감점이유'], rec2['감점이유'], rec3['감점이유']])
+
+
     res = pd.concat([emp_data.loc[rec1.index], emp_data.loc[rec2.index], emp_data.loc[rec3.index]]).drop(
         ['시급', '월급', '연봉'], axis=1)
     res = pd.concat([res, hap, reason], axis=1)
@@ -691,23 +696,35 @@ def reco_based_resume():
 
     for i in range(len(res['배리어프리'])):
         if res['배리어프리'].iloc[i] >= 1:
-            res['추천이유'].iloc[i].append('배리어프리 인증')
+            res['추천이유'].iloc[i].append('배리어프리 인증 사업장이에요')
 
     for i in range(len(res['안전사업장'])):
         if res['안전사업장'].iloc[i] >= 1:
-            res['추천이유'].iloc[i].append('안전 사업장')
+            res['추천이유'].iloc[i].append('안전 사업장 인증을 받았어요')
 
     for i in range(len(res['건강센터'])):
         if res['건강센터'].iloc[i] >= 1:
-            res['추천이유'].iloc[i].append('주변 건강센터')
+            res['추천이유'].iloc[i].append('주변에 건강센터가 있어요')
 
     for i in range(len(res['위험사업장1'])):
         if res['위험사업장1'].iloc[i] != 0 :
-            res['감점이유'].iloc[i].append('중대사고 발생 이력')
+            res['감점이유'].iloc[i].append('중대사고 발생 이력이 있어요')
 
     for i in range(len(res['위험사업장2'])):
         if res['위험사업장2'].iloc[i] != 0 :
-            res['감점이유'].iloc[i].append('중대사고 발생률 동종업계 대비 높음')
+            res['감점이유'].iloc[i].append('중대사고 발생률 동종업계 대비 높아요')
 
-    res = res.to_json(orient='records',force_ascii=False)
+
+
+    res.drop(columns = {'배리어프리','안전사업장','건강센터','위험사업장1','위험사업장2','직종대분류','직종중분류','주소'},inplace=True)
+    res.rename(columns={'연번': 'id', '구인신청일자': 'applicationDate', '사업장주소': 'businessAddress',
+                             '사업장명': 'companyName', '기업형태': 'companyType', '연락처': 'contactNumber',
+                             '입사형태': 'entryForm', '임금형태': 'formOfWages', '전공계열': 'majorField',
+                             '모집기간': 'recruitmentPeriod',
+                             '모집직종': 'recruitmentType', '등록일': 'registrationDate', '요구자격증': 'requiredCredentials',
+                             '요구학력': 'requiredEducation', '요구경력': 'requiredExperience', '담당기관': 'responsibleAgency',
+                             '고용형태': 'typeOfEmployment', '임금': 'wage','총합' : 'totalSum','추천이유':'recommendReason','감점이유':'unrecommendreason'}, inplace=True)
+
+
+    res = res.to_json(orient='records', force_ascii=False)
     return res
