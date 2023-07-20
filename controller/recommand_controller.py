@@ -281,14 +281,17 @@ def reco_based_resume():
 
 ##( 수정 필 ) 직종 대분류, 중분류 분류
     job_m = prefer_job['선호직종'][0].split('_')[0]
-    job_s = prefer_job['선호직종'][0].split('_')[1]
-
+    try:
+        job_s = prefer_job['선호직종'][0].split('_')[1] + prefer_job['선호직종'][0].split('_')[2]
+    except:
+        job_s = prefer_job['선호직종'][0].split('_')[1]
     df['취업직종대분류'] = df['취업직종대분류'].str.replace('·', '')
     df['취업직종대분류'] = df['취업직종대분류'].str.replace(' ', '')
     df['취업직종대분류'] = df['취업직종대분류'].str.replace('(', '')
     df['취업직종대분류'] = df['취업직종대분류'].str.replace(')', '')
 
-
+    print(job_m)
+    print(job_s)
     job_main_list = {
         '경영행정사무직': ['데스크 안내원', '통계·설문 조사원(슈퍼바이저 포함)', '인사·노무 전문가','전산자료 입력원(DB·단순자료)', '고객 상담원(A/S·고장·제품사용)',
                       '마케팅 전문가', '모니터 요원', '사무 보조원(공공기관)', '사무 보조원(일반사업체)', '총무 및 일반 사무원', '인사 사무원', '경영 기획 사무원',
@@ -352,18 +355,18 @@ def reco_based_resume():
 ############## DB와 추가된 거 계속 업데이트 ################
     emp_data[['모집직종', '직종대분류', '직종중분류']]
     emp_data['직종중분류'] = emp_data['직종중분류'].str.replace(' ', '')
-    emp_data['직종중분류'] = emp_data['직종중분류'].str.replace('전산자료입력원(DB·단순자료)', '전산자료입력원')
-    emp_data['직종중분류'] = emp_data['직종중분류'].str.replace('인사·노무전문가', '인사노무전문가')
-    emp_data['직종중분류'] = emp_data['직종중분류'].str.replace('통계·설문조사원', '통계설문조사원')
-    emp_data['직종중분류'] = emp_data['직종중분류'].str.replace('고객상담원(A/S·고장·제품사용)', '고객상담원')
-    emp_data['직종중분류'] = emp_data['직종중분류'].str.replace('사무보조원(공공기관)', '사무보조원_공공기관')
-
+    emp_data['직종중분류'] = emp_data['직종중분류'].replace('전산자료입력원(DB·단순자료)', '전산자료입력원')
+    emp_data['직종중분류'] = emp_data['직종중분류'].replace('인사·노무전문가', '인사노무전문가')
+    emp_data['직종중분류'] = emp_data['직종중분류'].replace('통계·설문조사원', '통계설문조사원')
+    emp_data['직종중분류'] = emp_data['직종중분류'].replace('고객상담원(A/S·고장·제품사용)', '고객상담원')
+    emp_data['직종중분류'] = emp_data['직종중분류'].replace('사무보조원(공공기관)', '사무보조원공공기관')
+    print(emp_data.loc[emp_data['직종중분류']=='사무보조원(공공기관)'])
 
 
     # 선호직종 미리 필터링
     if (bool(job_m) & bool(job_s)):
         emp_data = emp_data.loc[(emp_data['직종대분류'] == job_m) & (emp_data['직종중분류'] == job_s)]
-
+        print(emp_data)
     elif (job_m):
         emp_data = emp_data.loc[emp_data['직종대분류'] == job_m]
 
@@ -398,6 +401,7 @@ def reco_based_resume():
                 extracted_data3 = pd.concat([extracted_data3, emp_data[emp_data['주소'] == name1]])
     extracted_data3 = extracted_data3.drop_duplicates(['연번'])
     print(extracted_data3)
+    print('1')
 
     # 위험 사업장 필터링(extracted_data 4 & 5)
     extracted_data4 = pd.DataFrame()
@@ -419,6 +423,8 @@ def reco_based_resume():
 
     print(extracted_data1)
     print(extracted_data2)
+    print('2')
+
     val1 = 1
     val2 = 1
     val3 = 1
@@ -485,7 +491,7 @@ def reco_based_resume():
     emp_data['위험사업장1'] = np.where(emp_data['사업장명'].isin(danger_list1), '-1.6', '0')
     emp_data['위험사업장2'] = np.where(emp_data['사업장명'].isin(danger_list2), '-1.6', '0')
 
-
+    print(3)
 
 
     # 급여형태 별 분류
