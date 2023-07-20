@@ -689,5 +689,5 @@ def reco_based_resume():
 
     print(res)
 
-    res = res.to_json(orient='records',force_ascii=False,indent = 4)
+    res = res.to_json(orient='records',force_ascii=False)
     return res
