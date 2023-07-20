@@ -22,6 +22,8 @@ def info():
     import pandas as pd
     member_id = request.get_json()
     id = member_id['id']
+    print('json으로 받은 info/id:' + id)
+
 
     cursor = reco_db.cursor(pymysql.cursors.DictCursor)
 
@@ -30,7 +32,7 @@ def info():
     mem = cursor.fetchall()
 
     mem = pd.DataFrame(mem)
-    print(mem)
+
 
     # email, member_id는 그대로
     mem.rename(columns = {'address_details' : '거주지_상세', 'address_info': '거주지_대분류', 'age' : '나이', 'disability_type' : '장애유형_등급' , 'username' : '이름'},inplace = True)
@@ -59,7 +61,7 @@ def info():
     a = cond3['취업직종대분류'].value_counts(ascending = False).index.values[0]
     #a.to_json(orient='records', force_ascii=False, indent=4)
     ## json 형태로 보내기
-
+    print(a)
     return a
 
 @bp.route('/wish',methods = ['GET'])
@@ -70,7 +72,7 @@ def wish():
 
     member_id = request.get_json()
     id = member_id['id']
-
+    print('json으로 받은 wish/id:' + id)
     cursor = reco_db.cursor(pymysql.cursors.DictCursor)
 
     query = "select * from `job_announcement`;"
@@ -160,9 +162,9 @@ def wish():
         data = emp_data.loc[emp_data['연번'] == i]
         res_df = pd.concat([res_df, data])
 
-    print(res_df)
-    res = res_df.to_json(orient='records', force_ascii=False)
 
+    res = res_df.to_json(orient='records', force_ascii=False)
+    print(res_df)
     return res
 @bp.route('/resume',methods = ['GET'])# 두개일땐 ('GET','POST')
 def reco_based_resume():
@@ -174,7 +176,7 @@ def reco_based_resume():
 
     member_id = request.get_json()
     id = member_id['id']
-
+    print('json으로 받은 resume/id:' + id)
     cursor = reco_db.cursor(pymysql.cursors.DictCursor)
     sql = "SELECT * FROM `barrier_free_certified_workplace`;"
     sql1 = "SELECT address,center_name FROM `health_center_info`;"
@@ -194,7 +196,6 @@ def reco_based_resume():
     mem = cursor.fetchall()
 
     mem = pd.DataFrame(mem)
-    print(mem)
 ###
     cursor.execute(sql)
     result = cursor.fetchall()
@@ -671,7 +672,6 @@ def reco_based_resume():
     rec2['감점이유'] = top_columns
 
     reason3 = rec3.iloc[:, -8:-2]
-    print(reason3)
     top_columns = reason3.apply(lambda row: row[row <= -1].nlargest(n).index.tolist(), axis=1)
     rec3['감점이유'] = top_columns
 
@@ -725,6 +725,6 @@ def reco_based_resume():
                              '요구학력': 'requiredEducation', '요구경력': 'requiredExperience', '담당기관': 'responsibleAgency',
                              '고용형태': 'typeOfEmployment', '임금': 'wage','총합' : 'totalSum','추천이유':'recommendReason','감점이유':'unrecommendreason'}, inplace=True)
 
-
     res = res.to_json(orient='records', force_ascii=False)
+    print(res)
     return res
