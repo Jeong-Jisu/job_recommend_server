@@ -18,4 +18,4 @@ if __name__ == '__main__':
     app = create_app()
 
     ### 플라스크앱 실행
-    app.run(host='0.0.0.0',port=5000, debug=True)  # debug=True : 소스코드를 변경 자동으로 감지 Flask서버 재시작
+    app.run(host='0.0.0.0', debug=True)  # debug=True : 소스코드를 변경 자동으로 감지 Flask서버 재시작

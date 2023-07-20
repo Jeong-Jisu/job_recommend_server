@@ -156,11 +156,11 @@ def wish():
 
     res_df = pd.DataFrame()
     for i in recommendations:
-        print(i)
+        #print(i)
         data = emp_data.loc[emp_data['연번'] == i]
         res_df = pd.concat([res_df, data])
 
-    res = res_df.to_json(orient='records', force_ascii=False, indent=4)
+    res = res_df.to_json(orient='records', force_ascii=False)
 
     return res
 @bp.route('/resume',methods = ['GET'])# 두개일땐 ('GET','POST')
@@ -169,6 +169,7 @@ def reco_based_resume():
     # ---님께 추천된 공고는 ~ 입니다.
     import pandas as pd
     import numpy as np
+    import re
 
     member_id = request.get_json()
     id = member_id['id']
@@ -244,8 +245,8 @@ def reco_based_resume():
     resumes = pd.DataFrame(resumes)
     prefer_job = pd.DataFrame(prefer_job)
 
-    print(prefer.columns)
-    print(certification.columns)
+    # print(prefer.columns)
+    # print(certification.columns)
 
     accident1.rename(columns = {'workplace_name' : '위험사업장명1'}, inplace=True)
     accident2.rename(columns= {'workplace_name' : '위험사업장명2'}, inplace=True)
@@ -290,8 +291,6 @@ def reco_based_resume():
     df['취업직종대분류'] = df['취업직종대분류'].str.replace('(', '')
     df['취업직종대분류'] = df['취업직종대분류'].str.replace(')', '')
 
-    print(job_m)
-    print(job_s)
     job_main_list = {
         '경영행정사무직': ['데스크 안내원', '통계·설문 조사원(슈퍼바이저 포함)', '인사·노무 전문가','전산자료 입력원(DB·단순자료)', '고객 상담원(A/S·고장·제품사용)',
                       '마케팅 전문가', '모니터 요원', '사무 보조원(공공기관)', '사무 보조원(일반사업체)', '총무 및 일반 사무원', '인사 사무원', '경영 기획 사무원',
@@ -348,7 +347,6 @@ def reco_based_resume():
     for i in range(len(emp_data['모집직종'])):
         for name, lst in job_main_list.items():
             if emp_data['모집직종'].values[i] in lst:
-                # print(f"리스트 '{name}'에서 값 {emp_data['모집직종'].values[i]}를 찾았습니다.")
                 emp_data.loc[i, '직종대분류'] = name
                 emp_data.loc[i, '직종중분류'] = emp_data['모집직종'].values[i]
 
@@ -360,13 +358,12 @@ def reco_based_resume():
     emp_data['직종중분류'] = emp_data['직종중분류'].replace('통계·설문조사원', '통계설문조사원')
     emp_data['직종중분류'] = emp_data['직종중분류'].replace('고객상담원(A/S·고장·제품사용)', '고객상담원')
     emp_data['직종중분류'] = emp_data['직종중분류'].replace('사무보조원(공공기관)', '사무보조원공공기관')
-    print(emp_data.loc[emp_data['직종중분류']=='사무보조원(공공기관)'])
+    #print(emp_data.loc[emp_data['직종중분류']=='사무보조원(공공기관)'])
 
 
     # 선호직종 미리 필터링
     if (bool(job_m) & bool(job_s)):
         emp_data = emp_data.loc[(emp_data['직종대분류'] == job_m) & (emp_data['직종중분류'] == job_s)]
-        print(emp_data)
     elif (job_m):
         emp_data = emp_data.loc[emp_data['직종대분류'] == job_m]
 
@@ -391,17 +388,21 @@ def reco_based_resume():
 
     emp_data['주소'] = emp_data['사업장주소'].str.split(' ').str.get(0) + emp_data['사업장주소'].str.split(' ').str.get(1)
     health['주소'] = health['사업장주소'].str.split(' ').str.get(0) + health['사업장주소'].str.split(' ').str.get(1)
-    print(emp_data['주소'])
-    print(health['주소'])
-    print('zzz')
     extracted_data3 = pd.DataFrame()
     for name1 in emp_data['주소']:
         for name2 in health['주소']:
             if name1 in name2:
                 extracted_data3 = pd.concat([extracted_data3, emp_data[emp_data['주소'] == name1]])
     extracted_data3 = extracted_data3.drop_duplicates(['연번'])
-    print(extracted_data3)
-    print('1')
+
+
+
+    # 괄호 안의 내용을 모두 제거하기 위한 정규표현식 패턴
+    pattern = r'\([^)]*\)|㈜|/'
+
+    # 정규표현식으로 매칭되는 부분을 빈 문자열로 대체
+    accident1['위험사업장명1'] = accident1['위험사업장명1'].apply(lambda x: re.sub(pattern, '', x))
+    accident2['위험사업장명2'] = accident2['위험사업장명2'].apply(lambda x: re.sub(pattern, '', x))
 
     # 위험 사업장 필터링(extracted_data 4 & 5)
     extracted_data4 = pd.DataFrame()
@@ -418,12 +419,6 @@ def reco_based_resume():
                 extracted_data5 = pd.concat([extracted_data5, emp_data[emp_data['사업장명'] == name1]])
     extracted_data5 = extracted_data5.drop_duplicates(['연번'])
 
-    #emp_data = emp_data.drop(['주소'],axis = 1)
-
-
-    print(extracted_data1)
-    print(extracted_data2)
-    print('2')
 
     val1 = 1
     val2 = 1
@@ -490,8 +485,6 @@ def reco_based_resume():
     # 위험사업장인 경우 음수 가중치 부여
     emp_data['위험사업장1'] = np.where(emp_data['사업장명'].isin(danger_list1), '-1.6', '0')
     emp_data['위험사업장2'] = np.where(emp_data['사업장명'].isin(danger_list2), '-1.6', '0')
-
-    print(3)
 
 
     # 급여형태 별 분류
@@ -626,8 +619,6 @@ def reco_based_resume():
 
     # 급여유형(month)
     if not emp_numeric_month.empty:
-        print('month')
-        print(encoded_m)
         emp_numeric_month['급여점수'] = sc3.fit_transform(pd.DataFrame(emp_numeric_month['월급'])) + 1
         for j in important:
             for i in enumerate(encoded_m.columns):
@@ -635,7 +626,7 @@ def reco_based_resume():
                 if j in i[1]:  # 정확한 값을 원하면 == 로 변경
                     df2 = pd.DataFrame(encoded_m.loc[:, i[1]]) * 1.6  # 중요 가중치
                     data2 = pd.concat([data2, df2], axis=1)
-                    print(i[1])
+                    #print(i[1])
                     encoded_2 = encoded_m.drop(str(i[1]), axis=1)
         encoded2 = encoded_2 * 1.3
         data2 = pd.concat([data2, encoded2], axis=1)
@@ -668,11 +659,25 @@ def reco_based_resume():
     top_columns = reason3.apply(lambda row: row[row > 1.3].nlargest(n).index.tolist(), axis=1)
     rec3['추천이유'] = top_columns
 
+    reason1_1 = rec1.iloc[:, -4:-2]
+    # 행별 상위 n개의 비중을 가지는 컬럼과 해당 값 출력
+    top_columns = reason1.apply(lambda row: row[row <= -1].nlargest(n).index.tolist(), axis=1)
+    rec1['감점이유'] = top_columns
+
+    reason2 = rec2.iloc[:, -4:-2]
+    top_columns = reason2.apply(lambda row: row[row <= -1].nlargest(n).index.tolist(), axis=1)
+    rec2['감점이유'] = top_columns
+
+    reason3 = rec3.iloc[:, -4:-2]
+    top_columns = reason3.apply(lambda row: row[row <= -1].nlargest(n).index.tolist(), axis=1)
+    rec3['감점이유'] = top_columns
+
     res = pd.DataFrame()
     hap = pd.DataFrame()
     reason = pd.DataFrame()
     hap['총합'] = pd.concat([rec1['총합'], rec2['총합'], rec3['총합']])
     reason['추천이유'] = pd.concat([rec1['추천이유'], rec2['추천이유'], rec3['추천이유']])
+    reason['감점이유'] = pd.concat([rec1['감점이유'], rec2['감점이유'], rec3['감점이유']])
     res = pd.concat([emp_data.loc[rec1.index], emp_data.loc[rec2.index], emp_data.loc[rec3.index]]).drop(
         ['시급', '월급', '연봉'], axis=1)
     res = pd.concat([res, hap, reason], axis=1)
@@ -680,6 +685,9 @@ def reco_based_resume():
     res['배리어프리'] = res['배리어프리'].astype(int)
     res['안전사업장'] = res['안전사업장'].astype(int)
     res['건강센터'] = res['건강센터'].astype(int)
+    res['위험사업장1'] = res['위험사업장1'].astype(int)
+    res['위험사업장2'] = res['위험사업장2'].astype(int)
+    #print([len(res))
 
     for i in range(len(res['배리어프리'])):
         if res['배리어프리'].iloc[i] >= 1:
@@ -693,7 +701,13 @@ def reco_based_resume():
         if res['건강센터'].iloc[i] >= 1:
             res['추천이유'].iloc[i].append('주변 건강센터')
 
-    print(res)
+    for i in range(len(res['위험사업장1'])):
+        if res['위험사업장1'].iloc[i] != 0 :
+            res['감점이유'].iloc[i].append('중대사고 발생 이력')
+
+    for i in range(len(res['위험사업장2'])):
+        if res['위험사업장2'].iloc[i] != 0 :
+            res['감점이유'].iloc[i].append('중대사고 발생률 동종업계 대비 높음')
 
     res = res.to_json(orient='records',force_ascii=False)
     return res
