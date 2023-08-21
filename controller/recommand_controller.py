@@ -4,8 +4,8 @@ import pymysql
 
 reco_db = pymysql.connect(
         user='root',
-        passwd='qwkdlkjwqdghlkwwhfdjkdedgkqdk',
-        host='52.78.218.145',
+        passwd='???',
+        host='???',
         db='recommand',
         port=3306,
         charset='utf8'
@@ -111,21 +111,6 @@ def wish():
     #[mem_wish['email'] == id]
     mem = mem_wish.groupby('User')['Basket'].agg(list).reset_index()
     user = mem[['User','Basket']]
-
-
-    # user = pd.DataFrame({'User': ['JJS', 'KGB', 'JWJ', 'PJS'],
-    #                      'Basket': [[63, 274, 289], [289, 406, 598], [858, 63], [858, 158, 288]]})
-    #
-    # user = pd.DataFrame({
-    #     'User': ['JJS', 'KGB', 'JWJ', 'PJS', 'dd', 'ss', 'ww'],
-    #     'Basket': [[1, 2, 3, 4],
-    #                [1, 2, 3, 4, 5, 6],
-    #                [858, 63],
-    #                [858, 158, 288],
-    #                [1, 2, 3, 8],
-    #                [1, 2, 3, 4, 10],
-    #                [1, 2, 10, 4, 9]]
-    # })
 
     items = set()
     for basket in user['Basket']:
