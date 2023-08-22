@@ -4,8 +4,8 @@ import pymysql
 
 reco_db = pymysql.connect(
         user='root',
-        passwd='???',
-        host='???',
+        passwd='????',
+        host='????',
         db='recommand',
         port=3306,
         charset='utf8'
